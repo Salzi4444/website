@@ -1,0 +1,15 @@
+body
+{
+    color: white;
+    background-color: black;
+    text-align: center;
+
+    font-size: 110%;
+
+    font-family: 'Comic Sans MS', Courier;
+}
+
+img
+{
+    width: 80%;
+}
