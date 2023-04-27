@@ -19,9 +19,11 @@ namespace ChessGameGetter
 
             for (int i = 0; i < original.Count; i ++)
             {
-                Console.WriteLine($"{i} / {original.Count}");
+                Console.WriteLine();
+                Console.WriteLine($"{i} / {original.Count}: {original[i]}");
                 names.AddRange(getGameData(original[i], GameDataType.opponentname));
                 Console.WriteLine($"games: {gamecount}");
+                Console.WriteLine($"names: {names.Count}");
             }
 
             names.Add("Salzii");
@@ -46,21 +48,29 @@ namespace ChessGameGetter
 
             foreach(string archive in archives)
             {
-                dynamic games = GetJson(archive);
-                games = games["games"];
-
-                foreach (dynamic item in games)
+                try
                 {
-                    if (item["rules"] == "chess" && item["initial_setup"] == "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
-                    {
-                        switch (gameDataType)
-                        {
-                            case GameDataType.pgn: data.Add(CutoffPgn(item["pgn"])); break;
-                            case GameDataType.opponentname: data.Add(GetOpponentName(username, item["white"]["username"], item["black"]["username"])); break;
-                        }
+                    dynamic games = GetJson(archive);
+                    games = games["games"];
 
-                        gamecount++;
+                    foreach (dynamic item in games)
+                    {
+                        if (item["rules"] == "chess" && item["initial_setup"] == "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+                        {
+                            switch (gameDataType)
+                            {
+                                case GameDataType.pgn: data.Add(CutoffPgn(item["pgn"])); break;
+                                case GameDataType.opponentname: data.Add(GetOpponentName(username, item["white"]["username"], item["black"]["username"])); break;
+                            }
+
+                            gamecount++;
+                        }
                     }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("error while accessing archive: ");
+                    Console.WriteLine(e.ToString());
                 }
             }
 
