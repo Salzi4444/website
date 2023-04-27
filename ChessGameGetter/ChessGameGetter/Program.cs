@@ -5,6 +5,7 @@ using System.Linq;
 using System.Web.Script.Serialization;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.IO;
 
 namespace ChessGameGetter
 {
@@ -14,28 +15,32 @@ namespace ChessGameGetter
 
         static void Main(string[] args)
         {
-            List<string> original = getGameData("Salzii", GameDataType.opponentname);
-            List<string> names = new List<string>();
+            List<string> names = getGameData("Salzii", GameDataType.opponentname);
+            Console.WriteLine("got names to instpect");
 
-            for (int i = 0; i < original.Count; i ++)
+            for (int i = 0; i < names.Count; i++)
             {
-                Console.WriteLine();
-                Console.WriteLine($"{i} / {original.Count}: {original[i]}");
-                names.AddRange(getGameData(original[i], GameDataType.opponentname));
-                Console.WriteLine($"games: {gamecount}");
-                Console.WriteLine($"names: {names.Count}");
+                WritePGNS(names[i]);
+
+                Console.WriteLine($"wrote {i} / {names.Count} {names[i]}");
             }
 
-            names.Add("Salzii");
-            names.AddRange(original);
-            names = names.Distinct().ToList();
-
-            Console.WriteLine($"original length: {original.Count}");
-            Console.WriteLine($"names length: {names.Count}");
-            Console.WriteLine($"games: {gamecount}");
-
-
             while (true) { }
+        }
+
+        static void WritePGNS(string username)
+        {
+            List<string> pgn = getGameData(username, GameDataType.pgn);
+
+            gamecount += pgn.Count;
+
+            using (StreamWriter fs = new StreamWriter($@"games\{username}.txt"))
+            {
+                foreach (string game in pgn)
+                {
+                    fs.WriteLine(game);
+                }
+            }
         }
 
         static List<string> getGameData(string username, GameDataType gameDataType)
@@ -46,7 +51,7 @@ namespace ChessGameGetter
 
             List<string> data = new List<string>();
 
-            foreach(string archive in archives)
+            foreach (string archive in archives)
             {
                 try
                 {
@@ -62,8 +67,6 @@ namespace ChessGameGetter
                                 case GameDataType.pgn: data.Add(CutoffPgn(item["pgn"])); break;
                                 case GameDataType.opponentname: data.Add(GetOpponentName(username, item["white"]["username"], item["black"]["username"])); break;
                             }
-
-                            gamecount++;
                         }
                     }
                 }
@@ -79,7 +82,7 @@ namespace ChessGameGetter
 
         static dynamic GetJson(string url)
         {
-            Console.WriteLine($"requesting {url}");
+            //Console.WriteLine($"requesting {url}");
 
             WebClient client = new WebClient();
             string request = client.DownloadString(url);
@@ -102,6 +105,10 @@ namespace ChessGameGetter
             pgn = Regex.Replace(pgn, "  ", " ");
             pgn = Regex.Replace(pgn, @"\.", "");
             pgn = Regex.Replace(pgn, "\n", "");
+            pgn = Regex.Replace(pgn, "#", "");
+            pgn = Regex.Replace(pgn, "1-0", "");
+            pgn = Regex.Replace(pgn, "0-1", "");
+            pgn = Regex.Replace(pgn, "1/2-1/2", "");
 
             splits = pgn.Split(' ');
 
@@ -149,9 +156,17 @@ namespace ChessGameGetter
 /*
 
 statistic:
+
 dominiknatter
 original length: 158
 names length: 77616
 games: 87445
+
+
+Salzii
+68 moves / game
+
+hikaru
+86 moves / game
 
 */
