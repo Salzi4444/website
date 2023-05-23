@@ -1,0 +1,15 @@
+﻿html > *
+{
+    background-color: rgb(53, 54, 58);
+    color: white;
+}
+
+th 
+{
+    border: 1px solid;
+}
+
+table
+{
+    width: 100%
+}
